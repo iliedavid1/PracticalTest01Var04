@@ -5,6 +5,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -35,6 +36,52 @@ public class PracticalTest01Var04MainActivity extends AppCompatActivity {
         checkBox1 = findViewById(R.id.checkBox1);
         checkBox2 = findViewById(R.id.checkBox2);
 
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey("text1")) {
+                text1.setText(savedInstanceState.getString("text1"));
+            }
+            if (savedInstanceState.containsKey("text2")) {
+                text2.setText(savedInstanceState.getString("text2"));
+            }
+        }
 
+        display_info.setOnClickListener(view -> {
+            String text1Value = text1.getText().toString();
+            String text2Value = text2.getText().toString();
+            String displayText = "";
+            if (checkBox1.isChecked() && text1Value.isEmpty()) {
+                Toast.makeText(this, "Text1 is empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (checkBox2.isChecked() && text2Value.isEmpty()) {
+                Toast.makeText(this, "Text2 is empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (checkBox1.isChecked()) {
+                displayText += text1Value;
+            }
+            if (checkBox2.isChecked()) {
+                displayText += text2Value;
+            }
+            display_info_text.setText(displayText);
+        });
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putString("text1", text1.getText().toString());
+        savedInstanceState.putString("text2", text2.getText().toString());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (savedInstanceState.containsKey("text1")) {
+            text1.setText(savedInstanceState.getString("text1"));
+        }
+        if (savedInstanceState.containsKey("text2")) {
+            text2.setText(savedInstanceState.getString("text2"));
+        }
     }
 }
