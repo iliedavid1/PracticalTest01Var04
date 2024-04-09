@@ -1,7 +1,12 @@
 package ro.pub.cs.systems.eim.practicaltest01var04;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -16,6 +21,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import java.util.Objects;
+
 public class PracticalTest01Var04MainActivity extends AppCompatActivity {
 
     private EditText text1;
@@ -27,6 +34,19 @@ public class PracticalTest01Var04MainActivity extends AppCompatActivity {
     private CheckBox checkBox2;
 
     private ActivityResultLauncher<Intent> activityResultLauncher;
+
+    private MessageBroadcastReceiver messageBroadcastReceiver = new MessageBroadcastReceiver();
+    private class MessageBroadcastReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d("ceva", "onReceive: ");
+            Log.d("[message]", Objects.requireNonNull(intent.getStringExtra("message")));
+        }
+    }
+
+    private IntentFilter intentFilter = new IntentFilter();
+
+    boolean startedService = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +60,8 @@ public class PracticalTest01Var04MainActivity extends AppCompatActivity {
         display_info_text = findViewById(R.id.display_text);
         checkBox1 = findViewById(R.id.checkBox1);
         checkBox2 = findViewById(R.id.checkBox2);
+        intentFilter.addAction("ro.pub.cs.systems.eim.practicaltest01var04.intent.action.SEND_BROADCAST");
+
 
         if (savedInstanceState != null) {
             if (savedInstanceState.containsKey("text1")) {
@@ -54,6 +76,15 @@ public class PracticalTest01Var04MainActivity extends AppCompatActivity {
             String text1Value = text1.getText().toString();
             String text2Value = text2.getText().toString();
             String displayText = "";
+            if (checkBox1.isChecked() && checkBox2.isChecked() && !text1Value.isEmpty() && !text2Value.isEmpty()) {
+                displayText += text1Value;
+                displayText += text2Value;
+                display_info_text.setText(displayText);
+                Intent intent = new Intent(this, PracticalTest01Var04Service.class);
+                intent.putExtra("message", displayText);
+                getApplicationContext().startService(intent);
+                return;
+            }
             if (checkBox1.isChecked() && text1Value.isEmpty()) {
                 Toast.makeText(this, "Text1 is empty", Toast.LENGTH_SHORT).show();
                 return;
@@ -109,5 +140,24 @@ public class PracticalTest01Var04MainActivity extends AppCompatActivity {
         if (savedInstanceState.containsKey("text2")) {
             text2.setText(savedInstanceState.getString("text2"));
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        Intent intent = new Intent(this, PracticalTest01Var04Service.class);
+        stopService(intent);
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(messageBroadcastReceiver, intentFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        unregisterReceiver(messageBroadcastReceiver);
+        super.onPause();
     }
 }
